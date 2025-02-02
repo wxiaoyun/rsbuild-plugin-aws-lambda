@@ -1,50 +1,68 @@
-# rsbuild-plugin-example
+# rsbuild-plugin-aws-lambda
 
-Example plugin for Rsbuild.
+A Rsbuild plugin that configures your build for AWS Lambda deployment.
 
-<p>
-  <a href="https://npmjs.com/package/rsbuild-plugin-example">
-   <img src="https://img.shields.io/npm/v/rsbuild-plugin-example?style=flat-square&colorA=564341&colorB=EDED91" alt="npm version" />
-  </a>
-  <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square&colorA=564341&colorB=EDED91" alt="license" />
-  <a href="https://npmcharts.com/compare/rsbuild-plugin-example?minimal=true"><img src="https://img.shields.io/npm/dm/rsbuild-plugin-example.svg?style=flat-square&colorA=564341&colorB=EDED91" alt="downloads" /></a>
-</p>
+## Installation
+
+```
+# npm
+npm install rsbuild-plugin-aws-lambda -D
+
+# yarn
+yarn add rsbuild-plugin-aws-lambda -D
+
+# pnpm
+pnpm add rsbuild-plugin-aws-lambda -D
+```
 
 ## Usage
 
-Install:
+Add the plugin to your Rsbuild config:
 
-```bash
-npm add rsbuild-plugin-example -D
-```
-
-Add plugin to your `rsbuild.config.ts`:
-
-```ts
-// rsbuild.config.ts
-import { pluginExample } from "rsbuild-plugin-example";
+``` typescript
+import { pluginAwsLambda } from 'rsbuild-plugin-aws-lambda';
 
 export default {
-  plugins: [pluginExample()],
+  plugins: [pluginAwsLambda()],
 };
 ```
 
-## Options
+This plugin will:
+- Set the build target to `node` by default
+- Configure the output library type as `commonjs2` for AWS Lambda compatibility
 
-### foo
+## Configuration
 
-Some description.
+You can customize the plugin behavior with options:
 
-- Type: `string`
-- Default: `undefined`
-- Example:
-
-```js
-pluginExample({
-  foo: "bar",
-});
+``` typescript
+export default {
+  plugins: [
+    pluginAwsLambda({
+      override: {
+        target: 'node', // 'node' | 'web' | 'web-worker'
+        library: {
+          type: 'commonjs2',
+          // other library options...
+        },
+      },
+    }),
+  ],
+};
 ```
+
+### Options
+
+#### `override.target`
+- Type: `'node' | 'web' | 'web-worker'`
+- Default: `'node'`
+- Purpose: Specifies the build target environment
+
+#### `override.library`
+- Type: `LibraryOptions`
+- Default: `{ type: 'commonjs2' }`
+- Purpose: Configures the output library format
 
 ## License
 
-[MIT](./LICENSE).
+MIT License
