@@ -1,0 +1,6 @@
+{
+  "name": "@wxiaoyun/rsbuild-aws-lambda-plugin",
+  "version": "0.0.2",
+  "license": "MIT",
+  "exports": "./src/index.ts"
+}
