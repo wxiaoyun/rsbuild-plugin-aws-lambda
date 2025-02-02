@@ -1,44 +1,41 @@
-import { dirname } from 'node:path';
+import path, { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { createRsbuild } from '@rsbuild/core';
-import { pluginExample } from '../../src';
-import { getRandomPort } from '../helper';
+import { pluginAwsLambda } from '../../src';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-test('should render page as expected', async ({ page }) => {
+test('exported handler function', async ({ page }) => {
   const rsbuild = await createRsbuild({
     cwd: __dirname,
     rsbuildConfig: {
-      plugins: [pluginExample()],
-      server: {
-        port: getRandomPort(),
+      source: {
+        entry: {
+          index: path.join(__dirname, 'src/index.js'),
+        },
       },
-    },
-  });
-
-  const { server, urls } = await rsbuild.startDevServer();
-
-  await page.goto(urls[0]);
-  expect(await page.evaluate('window.test')).toBe(1);
-
-  await server.close();
-});
-
-test('should build succeed', async ({ page }) => {
-  const rsbuild = await createRsbuild({
-    cwd: __dirname,
-    rsbuildConfig: {
-      plugins: [pluginExample()],
+      output: {
+        filename: {
+          // So that we can await import the compiled module from a esm file
+          js: '[name].cjs',
+        },
+      },
+      plugins: [pluginAwsLambda()],
     },
   });
 
   await rsbuild.build();
-  const { server, urls } = await rsbuild.preview();
 
-  await page.goto(urls[0]);
-  expect(await page.evaluate('window.test')).toBe(1);
+  const distPath = path.join(__dirname, 'dist/index.cjs');
+  const compiledModule = await import(distPath);
 
-  await server.close();
+  const handler = compiledModule.default.handler;
+
+  expect(handler).toBeDefined();
+  expect(typeof handler).toBe('function');
+
+  const result = await handler({}, {});
+  expect(result.statusCode).toBe(200);
+  expect(JSON.parse(result.body).message).toBe('Hello from Lambda!');
 });
